@@ -259,7 +259,26 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                     <PaymentStep
                       fare={fare}
                       bookingData={{ ...form, km: routeInfo?.km, whatsappText }}
-                      onSuccess={(mode) => { setPaymentMode(mode); setSubmitted(true); }}
+                      onSuccess={(mode) => {
+                        setPaymentMode(mode);
+                        setSubmitted(true);
+                        fetch("/api/send-booking", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            type: "Taxi",
+                            name: form.name, email: form.email, phone: form.phone,
+                            pickup: form.pickup, destination: form.destination,
+                            date: form.date, time: form.time,
+                            vehicle: selectedVehicle?.label,
+                            passengers: form.passengers, luggage: form.luggage,
+                            distance: routeInfo?.km, fare: fare?.total?.toFixed(2),
+                            paymentStatus: mode === "paid" ? "Paid online" : "Pay on arrival",
+                            notes: form.notes, flightNumber: form.flightNumber,
+                            returnTrip: form.returnTrip ? `${form.returnDate} at ${form.returnTime}` : "",
+                          }),
+                        }).catch(() => {});
+                      }}
                       onBack={() => setStep(1)}
                     />
                   )}
