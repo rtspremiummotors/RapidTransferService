@@ -138,7 +138,25 @@ export default function PaymentStep({ fare, bookingData, onSuccess, onBack }) {
             </div>
           )}
           {clientSecret && !loading && (
-            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#0c1828", colorBackground: "#ffffff", fontFamily: "Inter, system-ui, sans-serif" } } }}>
+            <Elements stripe={stripePromise} options={{ clientSecret, appearance: {
+                theme: "flat",
+                variables: {
+                  colorPrimary: "#f2b705",
+                  colorBackground: "#f4f6f9",
+                  colorText: "#1d2a3a",
+                  colorDanger: "#ef4444",
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  borderRadius: "12px",
+                  spacingUnit: "4px",
+                },
+                rules: {
+                  ".Tab, .Input, .Block": { border: "1.5px solid #e3e8ef", boxShadow: "none" },
+                  ".Tab:hover": { borderColor: "#f2b705" },
+                  ".Tab--selected": { borderColor: "#0c1828", backgroundColor: "#ffffff" },
+                  ".Input:focus": { borderColor: "#f2b705", boxShadow: "0 0 0 3px rgba(242,183,5,0.18)" },
+                  ".Label": { fontWeight: "600", color: "#0c1828" },
+                }
+              } }}>
               <StripeForm fare={fare} bookingData={bookingData} onSuccess={onSuccess} onBack={() => setChoice(null)} />
             </Elements>
           )}
