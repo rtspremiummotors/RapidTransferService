@@ -3133,23 +3133,24 @@ h4 {
 }
 
 .add-stop-btn {
-  width: 100%;
-  padding: 0.7rem;
-  background: var(--gray-bg);
-  border: 1.5px dashed var(--line);
-  border-radius: var(--radius-sm);
-  color: var(--navy);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.2rem;
+  background: none;
+  border: none;
+  color: var(--gold-dark);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  transition: color 0.18s ease, gap 0.18s ease;
+  margin: -0.3rem 0;
 }
 
 .add-stop-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold-dark);
-  background: rgba(242,183,5,0.04);
+  color: var(--navy);
+  gap: 0.6rem;
 }
 
 .van-notice {
