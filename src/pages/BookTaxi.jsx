@@ -33,8 +33,9 @@ export default function BookTaxi({ onBack }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     pickup: "", destination: "", date: "", time: "",
+    stops: [],
     returnTrip: false, returnDate: "", returnTime: "",
-    passengers: "1", luggage: "1", vehicle: "standard",
+    passengers: "1", luggageSmall: "1", luggageBig: "0", vehicle: "standard",
     flightNumber: "", notes: "",
     name: "", phone: "", email: "",
   });
@@ -52,25 +53,49 @@ export default function BookTaxi({ onBack }) {
       : v
   }));
 
+  // Passengers handler — auto-switch to van when 5+
+  const setPassengers = (val) => {
+    setForm((p) => {
+      const next = { ...p, passengers: val };
+      if (parseInt(val) >= 5 && p.vehicle !== "van") next.vehicle = "van";
+      return next;
+    });
+  };
+
+  // Stops
+  const addStop = () => setForm((p) => ({ ...p, stops: [...p.stops, ""] }));
+  const updateStop = (i, val) => setForm((p) => {
+    const stops = [...p.stops];
+    stops[i] = val;
+    return { ...p, stops };
+  });
+  const removeStop = (i) => setForm((p) => ({ ...p, stops: p.stops.filter((_, idx) => idx !== i) }));
+
   const canNext0 = form.pickup.trim() && form.destination.trim() && form.date && form.time;
   const canNext1 = form.name.trim() && form.phone.trim() && form.email.trim();
 
   const selectedVehicle = VEHICLES.find(v => v.id === form.vehicle);
+  const vanLocked = parseInt(form.passengers) >= 5;
+
+  const stopsText = form.stops.filter(s => s.trim()).length
+    ? form.stops.filter(s => s.trim()).map((s, i) => `   ${i + 1}. ${s}`).join("\n")
+    : "";
 
   const whatsappText =
 `Hi! I'd like to book a taxi with Rapid Transfer Service.
 
 🚗 Trip details
 • From: ${form.pickup}
+${stopsText ? `• Stops:\n${stopsText}` : ""}
 • To: ${form.destination}
 • Date: ${form.date} at ${form.time}
 • Vehicle: ${selectedVehicle?.label}
 • Passengers: ${form.passengers}
-• Luggage: ${form.luggage} bag(s)
+• Luggage: ${form.luggageSmall} small, ${form.luggageBig} big
 ${form.flightNumber ? `• Flight: ${form.flightNumber}` : ""}
 ${form.returnTrip ? `• Return: ${form.returnDate} at ${form.returnTime}` : ""}
 ${routeInfo ? `• Distance: ${routeInfo.km} km (${routeInfo.duration})` : ""}
-${fare ? `• Estimated fare: €${fare.total.toFixed(2)}` : ""}
+${fare ? `• Fare: €${fare.total.toFixed(2)}` : ""}
 
 👤 My details
 • Name: ${form.name}
@@ -78,18 +103,26 @@ ${fare ? `• Estimated fare: €${fare.total.toFixed(2)}` : ""}
 • Email: ${form.email}
 ${form.notes ? `• Notes: ${form.notes}` : ""}`;
 
-  // Calculate fare when moving to step 2
   const goToReview = async () => {
     setFareLoading(true);
     setFareError(null);
     try {
-      const { km, duration } = await getDrivingDistance(form.pickup, form.destination);
-      setRouteInfo({ km, duration });
-      const f = calculateTaxiFare(km, form.vehicle, form.time, form.returnTrip);
+      // Build waypoints: pickup -> stops -> destination, sum the legs
+      const points = [form.pickup, ...form.stops.filter(s => s.trim()), form.destination];
+      let totalKm = 0;
+      let lastDuration = "";
+      for (let i = 0; i < points.length - 1; i++) {
+        const { km, duration } = await getDrivingDistance(points[i], points[i + 1]);
+        totalKm += km;
+        lastDuration = duration;
+      }
+      totalKm = parseFloat(totalKm.toFixed(1));
+      setRouteInfo({ km: totalKm, duration: lastDuration });
+      const f = calculateTaxiFare(totalKm, form.vehicle, form.time, form.returnTrip);
       setFare(f);
       setStep(2);
     } catch (e) {
-      setFareError("Could not calculate distance. Make sure both addresses are complete and try again. If the problem persists, contact us directly.");
+      setFareError("Could not calculate distance. Make sure all addresses are complete and try again.");
     } finally {
       setFareLoading(false);
     }
@@ -124,7 +157,7 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
             <div className="book-confirmed">
               <div className="confirmed-icon">✓</div>
               <h2>{paymentMode === "paid" ? "Payment successful!" : "Booking confirmed!"}</h2>
-              <p>{paymentMode === "paid" ? "Your payment is confirmed. We will contact you shortly to confirm your ride." : "We will contact you shortly to confirm your ride."}</p>
+              <p>{paymentMode === "paid" ? "Your payment is confirmed. We will contact you shortly." : "We will contact you shortly to confirm your ride."}</p>
               <div className="summary">
                 {[
                   { label: "From", value: form.pickup },
@@ -155,6 +188,29 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                   <h2>Where are you going?</h2>
                   <div className="field-grid">
                     <AddressInput label="Pickup location" placeholder="Street, city or airport" value={form.pickup} onChange={set("pickup")} dotColor="gold" />
+
+                    {/* Extra stops */}
+                    {form.stops.map((stop, i) => (
+                      <div key={i} className="field field-full stop-field">
+                        <div className="stop-field-inner">
+                          <AddressInput
+                            label={`Stop ${i + 1}`}
+                            placeholder="Address of the stop"
+                            value={stop}
+                            onChange={(val) => updateStop(i, val)}
+                            dotColor="navy"
+                          />
+                          <button type="button" className="stop-remove" onClick={() => removeStop(i)} aria-label="Remove stop">✕</button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="field field-full">
+                      <button type="button" className="add-stop-btn" onClick={addStop}>
+                        + Add a stop in between
+                      </button>
+                    </div>
+
                     <AddressInput label="Destination" placeholder="Where are you going?" value={form.destination} onChange={set("destination")} dotColor="navy" />
                     <DatePicker label="Date" value={form.date} onChange={set("date")} min={new Date().toISOString().split("T")[0]} />
                     <TimePicker label="Time" value={form.time} onChange={set("time")} />
@@ -184,21 +240,30 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                 <div className="book-step">
                   <h2>Passengers &amp; vehicle</h2>
                   <div className="field-grid">
-                    <Counter label="Passengers" value={form.passengers} onChange={set("passengers")} min={1} max={8} suffix="passenger" />
-                    <Counter label="Luggage bags" value={form.luggage} onChange={set("luggage")} min={0} max={8} suffix="bag" />
+                    <Counter label="Passengers" value={form.passengers} onChange={setPassengers} min={1} max={8} suffix="passenger" />
+                    <div></div>
+                    <Counter label="Small luggage" value={form.luggageSmall} onChange={set("luggageSmall")} min={0} max={10} suffix="small bag" />
+                    <Counter label="Big luggage" value={form.luggageBig} onChange={set("luggageBig")} min={0} max={10} suffix="big bag" />
                   </div>
 
                   <p className="field-label" style={{ margin: "1.5rem 0 0.8rem" }}>Vehicle type</p>
+                  {vanLocked && (
+                    <p className="van-notice">For 5 or more passengers, a Van is required.</p>
+                  )}
                   <div className="vehicle-grid">
-                    {VEHICLES.map(v => (
-                      <button key={v.id} type="button"
-                        className={`vehicle-card ${form.vehicle === v.id ? "vehicle-card-active" : ""}`}
-                        onClick={() => setForm(p => ({ ...p, vehicle: v.id }))}>
-                        <span className="vehicle-icon">{v.icon}</span>
-                        <span className="vehicle-name">{v.label}</span>
-                        <span className="vehicle-sub">{v.sub}</span>
-                      </button>
-                    ))}
+                    {VEHICLES.map(v => {
+                      const disabled = vanLocked && v.id !== "van";
+                      return (
+                        <button key={v.id} type="button"
+                          className={`vehicle-card ${form.vehicle === v.id ? "vehicle-card-active" : ""} ${disabled ? "vehicle-card-disabled" : ""}`}
+                          onClick={() => !disabled && setForm(p => ({ ...p, vehicle: v.id }))}
+                          disabled={disabled}>
+                          <span className="vehicle-icon">{v.icon}</span>
+                          <span className="vehicle-name">{v.label}</span>
+                          <span className="vehicle-sub">{v.sub}</span>
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <div className="field-grid" style={{ marginTop: "1.5rem" }}>
@@ -232,16 +297,16 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
               {step === 2 && (
                 <div className="book-step">
                   <h2>Review &amp; pay</h2>
-
-                  {/* Trip summary */}
                   <div className="summary" style={{ marginBottom: "1.5rem" }}>
                     {[
                       { label: "From", value: form.pickup },
+                      ...form.stops.filter(s => s.trim()).map((s, i) => ({ label: `Stop ${i + 1}`, value: s })),
                       { label: "To", value: form.destination },
                       { label: "Date & time", value: `${form.date} at ${form.time}` },
                       ...(form.returnTrip ? [{ label: "Return", value: `${form.returnDate} at ${form.returnTime}` }] : []),
                       { label: "Vehicle", value: `${selectedVehicle?.icon} ${selectedVehicle?.label}` },
-                      { label: "Passengers", value: `${form.passengers} passenger${form.passengers > 1 ? "s" : ""}, ${form.luggage} bag${form.luggage !== "1" ? "s" : ""}` },
+                      { label: "Passengers", value: `${form.passengers}` },
+                      { label: "Luggage", value: `${form.luggageSmall} small, ${form.luggageBig} big` },
                       ...(form.flightNumber ? [{ label: "Flight", value: form.flightNumber }] : []),
                       { label: "Name", value: form.name },
                       { label: "Phone", value: form.phone },
@@ -271,7 +336,8 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                             pickup: form.pickup, destination: form.destination,
                             date: form.date, time: form.time,
                             vehicle: selectedVehicle?.label,
-                            passengers: form.passengers, luggage: form.luggage,
+                            passengers: form.passengers,
+                            luggage: `${form.luggageSmall} small, ${form.luggageBig} big`,
                             distance: routeInfo?.km, fare: fare?.total?.toFixed(2),
                             paymentStatus: mode === "paid" ? "Paid online" : "Pay on arrival",
                             notes: form.notes, flightNumber: form.flightNumber,
