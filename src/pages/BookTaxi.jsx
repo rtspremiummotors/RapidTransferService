@@ -205,7 +205,7 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                       </div>
                     ))}
 
-                    <div className="field field-full">
+                    <div className="field field-full add-stop-row">
                       <button type="button" className="add-stop-btn" onClick={addStop}>
                         + Add a stop in between
                       </button>
