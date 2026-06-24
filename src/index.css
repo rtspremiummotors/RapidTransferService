@@ -3015,11 +3015,28 @@ h4 {
 }
 
 /* Stripe */
+.payment-stripe {
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.6rem;
+}
+
 .payment-stripe h3 {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--navy);
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.4rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payment-stripe h3::before {
+  content: "🔒";
+  font-size: 0.95rem;
 }
 
 .stripe-loading {

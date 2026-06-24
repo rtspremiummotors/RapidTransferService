@@ -195,7 +195,7 @@ function StripeForm({ fare, bookingData, onSuccess, onBack }) {
 
   return (
     <form onSubmit={handleSubmit} className="stripe-form">
-      <PaymentElement />
+      <PaymentElement options={{ layout: { type: "accordion", defaultCollapsed: false, radios: true, spacedAccordionItems: true } }} />
       {error && <p className="stripe-error-msg">{error}</p>}
       <div className="stripe-actions">
         <button type="submit" className="btn btn-gold btn-lg btn-block" disabled={!stripe || processing}>
