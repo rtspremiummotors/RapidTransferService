@@ -3132,25 +3132,31 @@ h4 {
   border-color: #fecaca;
 }
 
+.add-stop-row {
+  margin-top: -0.6rem;
+  margin-bottom: -0.4rem;
+}
+
 .add-stop-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem 0.2rem;
-  background: none;
-  border: none;
+  padding: 0.45rem 0.85rem;
+  background: var(--gray-bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
   color: var(--gold-dark);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   cursor: pointer;
-  transition: color 0.18s ease, gap 0.18s ease;
-  margin: -0.3rem 0;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
 .add-stop-btn:hover {
   color: var(--navy);
-  gap: 0.6rem;
+  border-color: var(--gold);
+  background: rgba(242,183,5,0.06);
 }
 
 .van-notice {
@@ -3171,4 +3177,57 @@ h4 {
 .vehicle-card-disabled:hover {
   transform: none;
   border-color: var(--line);
+}
+
+/* ---------- Driver signup ---------- */
+
+.header-drive-link {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 0.5rem 0.6rem;
+  transition: color 0.18s ease;
+  white-space: nowrap;
+}
+
+.header-drive-link:hover { color: var(--gold); }
+
+.file-field input[type="file"] {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--muted);
+  padding: 0.7rem;
+  background: var(--gray-bg);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 100%;
+}
+
+.file-field input[type="file"]::file-selector-button {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.82rem;
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  margin-right: 0.8rem;
+  cursor: pointer;
+}
+
+.file-name {
+  font-size: 0.82rem;
+  color: #16a34a;
+  font-weight: 600;
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 900px) {
+  .header-drive-link { display: none; }
 }

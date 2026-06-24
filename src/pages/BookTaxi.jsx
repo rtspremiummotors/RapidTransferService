@@ -35,7 +35,7 @@ export default function BookTaxi({ onBack }) {
     pickup: "", destination: "", date: "", time: "",
     stops: [],
     returnTrip: false, returnDate: "", returnTime: "",
-    passengers: "1", luggageSmall: "1", luggageBig: "0", vehicle: "standard",
+    passengers: "1", babies: "0", luggageSmall: "1", luggageBig: "0", vehicle: "standard",
     flightNumber: "", notes: "",
     name: "", phone: "", email: "",
   });
@@ -76,6 +76,7 @@ export default function BookTaxi({ onBack }) {
 
   const selectedVehicle = VEHICLES.find(v => v.id === form.vehicle);
   const vanLocked = parseInt(form.passengers) >= 5;
+  const vansNeeded = Math.ceil(parseInt(form.passengers) / 8);
 
   const stopsText = form.stops.filter(s => s.trim()).length
     ? form.stops.filter(s => s.trim()).map((s, i) => `   ${i + 1}. ${s}`).join("\n")
@@ -89,9 +90,9 @@ export default function BookTaxi({ onBack }) {
 ${stopsText ? `• Stops:\n${stopsText}` : ""}
 • To: ${form.destination}
 • Date: ${form.date} at ${form.time}
-• Vehicle: ${selectedVehicle?.label}
+• Vehicle: ${selectedVehicle?.label}${vansNeeded > 1 ? ` (${vansNeeded} vans)` : ""}
 • Passengers: ${form.passengers}
-• Luggage: ${form.luggageSmall} small, ${form.luggageBig} big
+• Luggage: ${form.luggageSmall} small, ${form.luggageBig} big${parseInt(form.babies) > 0 ? `\n• Baby seats needed: ${form.babies}` : ""}
 ${form.flightNumber ? `• Flight: ${form.flightNumber}` : ""}
 ${form.returnTrip ? `• Return: ${form.returnDate} at ${form.returnTime}` : ""}
 ${routeInfo ? `• Distance: ${routeInfo.km} km (${routeInfo.duration})` : ""}
@@ -187,7 +188,9 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                 <div className="book-step">
                   <h2>Where are you going?</h2>
                   <div className="field-grid">
+                    {/* Pickup and destination side by side */}
                     <AddressInput label="Pickup location" placeholder="Street, city or airport" value={form.pickup} onChange={set("pickup")} dotColor="gold" />
+                    <AddressInput label="Destination" placeholder="Where are you going?" value={form.destination} onChange={set("destination")} dotColor="navy" />
 
                     {/* Extra stops */}
                     {form.stops.map((stop, i) => (
@@ -210,8 +213,6 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                         + Add a stop in between
                       </button>
                     </div>
-
-                    <AddressInput label="Destination" placeholder="Where are you going?" value={form.destination} onChange={set("destination")} dotColor="navy" />
                     <DatePicker label="Date" value={form.date} onChange={set("date")} min={new Date().toISOString().split("T")[0]} />
                     <TimePicker label="Time" value={form.time} onChange={set("time")} />
                     <label className="field field-full">
@@ -240,15 +241,19 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                 <div className="book-step">
                   <h2>Passengers &amp; vehicle</h2>
                   <div className="field-grid">
-                    <Counter label="Passengers" value={form.passengers} onChange={setPassengers} min={1} max={8} suffix="passenger" />
-                    <div></div>
+                    <Counter label="Passengers" value={form.passengers} onChange={setPassengers} min={1} max={96} suffix="passenger" />
+                    <Counter label="Kids (up to 2 yrs)" value={form.babies} onChange={set("babies")} min={0} max={8} suffix="baby seat" />
                     <Counter label="Small luggage" value={form.luggageSmall} onChange={set("luggageSmall")} min={0} max={10} suffix="small bag" />
                     <Counter label="Big luggage" value={form.luggageBig} onChange={set("luggageBig")} min={0} max={10} suffix="big bag" />
                   </div>
 
                   <p className="field-label" style={{ margin: "1.5rem 0 0.8rem" }}>Vehicle type</p>
                   {vanLocked && (
-                    <p className="van-notice">For 5 or more passengers, a Van is required.</p>
+                    <p className="van-notice">
+                      {vansNeeded > 1
+                        ? `For ${form.passengers} passengers, we will arrange ${vansNeeded} vans for your group.`
+                        : "For 5 or more passengers, a Van is required."}
+                    </p>
                   )}
                   <div className="vehicle-grid">
                     {VEHICLES.map(v => {
@@ -304,9 +309,10 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                       { label: "To", value: form.destination },
                       { label: "Date & time", value: `${form.date} at ${form.time}` },
                       ...(form.returnTrip ? [{ label: "Return", value: `${form.returnDate} at ${form.returnTime}` }] : []),
-                      { label: "Vehicle", value: `${selectedVehicle?.icon} ${selectedVehicle?.label}` },
+                      { label: "Vehicle", value: `${selectedVehicle?.icon} ${selectedVehicle?.label}${vansNeeded > 1 ? ` × ${vansNeeded}` : ""}` },
                       { label: "Passengers", value: `${form.passengers}` },
                       { label: "Luggage", value: `${form.luggageSmall} small, ${form.luggageBig} big` },
+                      ...(parseInt(form.babies) > 0 ? [{ label: "Baby seats", value: `${form.babies} (kids up to 2 yrs)` }] : []),
                       ...(form.flightNumber ? [{ label: "Flight", value: form.flightNumber }] : []),
                       { label: "Name", value: form.name },
                       { label: "Phone", value: form.phone },

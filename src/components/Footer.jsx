@@ -51,6 +51,7 @@ export default function Footer({ onNav }) {
             <a href="#fleet" onClick={(e) => { e.preventDefault(); onNav && onNav("home"); setTimeout(() => document.querySelector("#fleet")?.scrollIntoView({ behavior:"smooth" }), 50); }}>Our vehicles</a>
             <a href="#why-us" onClick={(e) => { e.preventDefault(); onNav && onNav("home"); setTimeout(() => document.querySelector("#why-us")?.scrollIntoView({ behavior:"smooth" }), 50); }}>Why choose us</a>
             <a href="#contact" onClick={(e) => { e.preventDefault(); onNav && onNav("home"); setTimeout(() => document.querySelector("#contact")?.scrollIntoView({ behavior:"smooth" }), 50); }}>Contact</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); onNav && onNav("drive-with-us"); }}>Drive with us</a>
           </div>
 
           <div className="footer-col">

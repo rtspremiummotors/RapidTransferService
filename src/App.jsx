@@ -13,6 +13,7 @@ import BookTaxi from "./pages/BookTaxi.jsx";
 import BookParcel from "./pages/BookParcel.jsx";
 import Terms from "./pages/Terms.jsx";
 import Privacy from "./pages/Privacy.jsx";
+import DriverSignup from "./pages/DriverSignup.jsx";
 
 // Simple client-side "router" — no library needed.
 // page can be: "home" | "book-taxi" | "book-parcel"
@@ -39,6 +40,16 @@ export default function App() {
       <>
         <Header onNav={goTo} />
         <Terms onBack={() => goTo("home")} />
+        <Footer onNav={goTo} />
+      </>
+    );
+  }
+
+  if (page === "drive-with-us") {
+    return (
+      <>
+        <Header onNav={goTo} />
+        <DriverSignup onBack={() => goTo("home")} />
         <Footer onNav={goTo} />
       </>
     );
