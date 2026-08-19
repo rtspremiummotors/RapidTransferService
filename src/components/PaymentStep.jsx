@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -11,12 +11,12 @@ import { WhatsAppIcon } from "./Hero.jsx";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-// ── Main PaymentStep ─────────────────────────────────────────
 export default function PaymentStep({ fare, bookingData, onSuccess, onBack }) {
-  const [choice, setChoice] = useState(null); // "online" | "arrival"
+  const [choice, setChoice] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [arrivalConfirmed, setArrivalConfirmed] = useState(false);
 
   const initStripe = async () => {
     setLoading(true);
@@ -53,9 +53,15 @@ export default function PaymentStep({ fare, bookingData, onSuccess, onBack }) {
 
   const selectArrival = () => setChoice("arrival");
 
+  // Fire the confirmation email BEFORE opening WhatsApp,
+  // so the request isn't cancelled by the page/tab navigating away.
+  const confirmArrival = () => {
+    setArrivalConfirmed(true);
+    onSuccess("arrival");
+  };
+
   return (
     <div className="payment-step">
-      {/* Fare summary */}
       <div className="fare-summary">
         <div className="fare-summary-head">
           <span>Your fare</span>
@@ -76,7 +82,6 @@ export default function PaymentStep({ fare, bookingData, onSuccess, onBack }) {
         <p className="fare-note">✓ This is your fixed price. No extra charges on arrival unless you add stops or change the route.</p>
       </div>
 
-      {/* Payment choice */}
       {!choice && (
         <>
           <h3 className="payment-title">How would you like to pay?</h3>
@@ -101,31 +106,36 @@ export default function PaymentStep({ fare, bookingData, onSuccess, onBack }) {
         </>
       )}
 
-      {/* Pay on arrival — confirm via WhatsApp */}
       {choice === "arrival" && (
         <div className="payment-arrival">
           <div className="arrival-check">✓</div>
           <h3>Confirmed — pay on arrival</h3>
           <p>Complete your booking by sending us the details on WhatsApp or by phone.</p>
-          <div className="confirm-btns">
-            <a
-              href={`https://wa.me/${COMPANY.whatsappNumber}?text=${encodeURIComponent(bookingData.whatsappText)}`}
-              className="btn btn-whatsapp btn-lg"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onSuccess}
-            >
-              <WhatsAppIcon /> Confirm on WhatsApp
-            </a>
-            <a href={`tel:${COMPANY.phoneTel}`} className="btn btn-outline btn-lg">
-              📞 Call us
-            </a>
-          </div>
-          <button className="back-link" onClick={() => setChoice(null)}>← Change payment method</button>
+
+          {!arrivalConfirmed ? (
+            <button type="button" className="btn btn-gold btn-lg" onClick={confirmArrival}>
+              Confirm booking
+            </button>
+          ) : (
+            <div className="confirm-btns">
+              <a
+                href={`https://wa.me/${COMPANY.whatsappNumber}?text=${encodeURIComponent(bookingData.whatsappText)}`}
+                className="btn btn-whatsapp btn-lg"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <WhatsAppIcon /> Confirm on WhatsApp
+              </a>
+              <a href={`tel:${COMPANY.phoneTel}`} className="btn btn-outline btn-lg">
+                📞 Call us
+              </a>
+            </div>
+          )}
+
+          <button className="back-link" onClick={() => { setChoice(null); setArrivalConfirmed(false); }}>← Change payment method</button>
         </div>
       )}
 
-      {/* Pay online — Stripe */}
       {choice === "online" && (
         <div className="payment-stripe">
           <h3>Pay securely online</h3>
@@ -166,7 +176,6 @@ export default function PaymentStep({ fare, bookingData, onSuccess, onBack }) {
   );
 }
 
-// ── Stripe checkout form ─────────────────────────────────────
 function StripeForm({ fare, bookingData, onSuccess, onBack }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -208,7 +217,6 @@ function StripeForm({ fare, bookingData, onSuccess, onBack }) {
   );
 }
 
-// Icons
 const si = { width:20, height:20, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", strokeWidth:1.8, strokeLinecap:"round", strokeLinejoin:"round" };
 function CardIcon() { return <svg {...si}><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>; }
 function CashIcon() { return <svg {...si}><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>; }
