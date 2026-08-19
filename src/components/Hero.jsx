@@ -12,7 +12,7 @@ export default function Hero({ onBook }) {
 
         {/* Trust line */}
         <div className="hero-trust-bar">
-          <span><span className="green-dot" />Online now · Average response 3 min</span>
+          <span><span className="green-dot" />Online now · Average response 5 min</span>
           <span className="htb-sep" />
           <span>⭐⭐⭐⭐⭐ Trusted by 500+ customers</span>
           <span className="htb-sep" />

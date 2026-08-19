@@ -12,12 +12,21 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "@stripe/stripe-js": "^4.0.0",
+<<<<<<< HEAD
     "@stripe/react-stripe-js": "^2.7.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "vite": "^5.4.10",
     "stripe": "^16.0.0"
+=======
+    "@stripe/react-stripe-js": "^2.7.0",
+    "stripe": "^16.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.10"
+>>>>>>> 3b5e379758ac0dd63a8e95c4c6f41fa920c4201b
   },
   "engines": {
     "node": ">=18.0.0"

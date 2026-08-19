@@ -82,6 +82,14 @@ export default function Header({ onNav }) {
 
             <button
               type="button"
+              className="header-drive-link"
+              onClick={() => onNav && onNav("drive-with-us")}
+            >
+              Drive with us
+            </button>
+
+            <button
+              type="button"
               className="btn btn-gold header-book"
               onClick={() => setShowModal(true)}
             >

@@ -216,7 +216,22 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                       className="btn btn-whatsapp btn-lg"
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setSubmitted(true)}
+                      onClick={() => {
+                        setSubmitted(true);
+                        fetch("/api/send-booking", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            type: "Parcel",
+                            name: form.name, email: form.email, phone: form.phone,
+                            pickup: form.pickup, destination: form.destination,
+                            date: form.date, time: form.time,
+                            vehicle: selectedSize?.label,
+                            paymentStatus: "Pay on arrival",
+                            notes: form.notes,
+                          }),
+                        }).catch(() => {});
+                      }}
                     >
                       <WhatsAppIcon /> Confirm via WhatsApp
                     </a>
