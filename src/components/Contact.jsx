@@ -1,114 +1,84 @@
 import { useState } from "react";
 import { COMPANY, phoneLink, whatsappLink, emailLink } from "../config.js";
-import SectionHeading from "./SectionHeading.jsx";
 import { WhatsAppIcon } from "./Hero.jsx";
+import SectionHeading from "./SectionHeading.jsx";
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: "", contact: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState(null);
 
-  const update = (field) => (e) =>
-    setForm((f) => ({ ...f, [field]: e.target.value }));
+  const set = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
 
-  // Frontend only: shows a confirmation message.
-  // To receive messages by email later, connect this to a service such as
-  // Formspree, EmailJS, or your own backend endpoint.
-  const handleSubmit = () => {
-    if (!form.name.trim() || !form.message.trim()) return;
-    setSent(true);
+  const submit = async () => {
+    if (!form.name.trim() || !form.message.trim()) {
+      setError("Please fill in your name and message.");
+      return;
+    }
+    setSending(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/send-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setSent(true);
+    } catch (e) {
+      setError("Could not send your message. Please try WhatsApp or phone instead.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
-    <section className="section section-dark" id="contact">
-      <div className="container contact-inner">
-        <div className="contact-copy">
-          <SectionHeading
-            light
-            eyebrow="Contact"
-            title="Reach us any hour"
-            sub="For immediate bookings, calling or WhatsApp is fastest. For questions and quotes, the form works too."
-          />
+    <section className="section" id="contact">
+      <div className="container">
+        <SectionHeading
+          eyebrow="Get in touch"
+          title="Contact us"
+          sub="Have a question or a custom request? Send us a message or reach us directly."
+        />
 
-          <ul className="contact-list">
-            <li>
-              <span className="contact-label">Phone</span>
-              <a href={phoneLink()}>{COMPANY.phoneDisplay}</a>
-            </li>
-            <li>
-              <span className="contact-label">WhatsApp</span>
-              <a href={whatsappLink()} target="_blank" rel="noopener noreferrer">
-                Message us <WhatsAppIcon />
-              </a>
-            </li>
-            <li>
-              <span className="contact-label">Email</span>
-              <a href={emailLink()}>{COMPANY.email}</a>
-            </li>
-            <li>
-              <span className="contact-label">Service area</span>
-              <span>{COMPANY.serviceArea}</span>
-            </li>
-            <li>
-              <span className="contact-label">Hours</span>
-              <span>{COMPANY.hours}</span>
-            </li>
-          </ul>
-        </div>
+        <div className="contact-grid">
+          <div className="contact-direct">
+            <a href={phoneLink()} className="contact-direct-item">
+              <span className="contact-direct-label">Call us</span>
+              <span className="contact-direct-value">{COMPANY.phoneDisplay}</span>
+            </a>
+            <a href={whatsappLink()} className="contact-direct-item" target="_blank" rel="noopener noreferrer">
+              <span className="contact-direct-label"><WhatsAppIcon /> WhatsApp</span>
+              <span className="contact-direct-value">Message us</span>
+            </a>
+            <a href={emailLink()} className="contact-direct-item">
+              <span className="contact-direct-label">Email</span>
+              <span className="contact-direct-value">{COMPANY.email}</span>
+            </a>
+          </div>
 
-        <div className="card contact-card">
-          {sent ? (
-            <div className="form-success" role="status">
-              <strong>Message ready to send!</strong>
-              <p>
-                This demo form doesn't send email yet. For now, copy your message
-                to {COMPANY.email} or contact us directly — we reply fast.
-              </p>
-              <div className="success-ctas">
-                <a href={phoneLink()} className="btn btn-gold">Call us</a>
-                <a
-                  href={whatsappLink()}
-                  className="btn btn-whatsapp"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <WhatsAppIcon /> WhatsApp
-                </a>
+          <div className="contact-form-card">
+            {sent ? (
+              <div className="book-confirmed">
+                <div className="confirmed-icon">✓</div>
+                <h2>Message sent!</h2>
+                <p>Thank you — we will get back to you shortly.</p>
               </div>
-            </div>
-          ) : (
-            <div className="booking-form">
-              <label className="field">
-                <span className="field-label">Your name</span>
-                <input
-                  type="text"
-                  placeholder="First and last name"
-                  value={form.name}
-                  onChange={update("name")}
-                />
-              </label>
-              <label className="field">
-                <span className="field-label">Phone or email</span>
-                <input
-                  type="text"
-                  placeholder="So we can reply"
-                  value={form.contact}
-                  onChange={update("contact")}
-                />
-              </label>
-              <label className="field">
-                <span className="field-label">Message</span>
-                <textarea
-                  rows="4"
-                  placeholder="Tell us about your trip or delivery"
-                  value={form.message}
-                  onChange={update("message")}
-                />
-              </label>
-              <button type="button" className="btn btn-gold btn-block" onClick={handleSubmit}>
-                Send message
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className="field-grid">
+                <label className="field"><span className="field-label">Your name</span><input type="text" value={form.name} onChange={set("name")} placeholder="First and last name" /></label>
+                <label className="field"><span className="field-label">Phone <span className="field-optional">(optional)</span></span><input type="tel" value={form.phone} onChange={set("phone")} placeholder="+32 ..." /></label>
+                <label className="field field-full"><span className="field-label">Email <span className="field-optional">(optional)</span></span><input type="email" value={form.email} onChange={set("email")} placeholder="your@email.com" /></label>
+                <label className="field field-full"><span className="field-label">Message</span><textarea rows="4" value={form.message} onChange={set("message")} placeholder="How can we help?" /></label>
+                {error && <p className="fare-error field-full">{error}</p>}
+                <button type="button" className="btn btn-gold btn-block field-full" onClick={submit} disabled={sending}>
+                  {sending ? "Sending..." : "Send message"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

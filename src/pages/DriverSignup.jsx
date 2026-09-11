@@ -17,7 +17,7 @@ export default function DriverSignup({ onBack }) {
     cv: null, license: null,
   });
 
-  // Company form
+  // Company form (insurance document removed)
   const [company, setCompany] = useState({
     companyName: "", contactName: "", email: "", phone: "",
     vatNumber: "", fleetSize: "", serviceType: DRIVER_TYPES[0],

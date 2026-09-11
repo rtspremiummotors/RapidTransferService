@@ -67,20 +67,29 @@ export default async function handler(req, res) {
         </div>
       </div>`;
 
-    const send = (to, subject, heading) =>
+    // send(to, subject, heading, replyTo)
+    const send = (to, subject, heading, replyTo) =>
       fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ from: FROM_EMAIL, to, subject, html: html(heading) }),
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to,
+          subject,
+          html: html(heading),
+          reply_to: replyTo,
+        }),
       });
 
-    await send(COMPANY_EMAIL, `New ${type} booking from ${name}`, "New booking received");
+    // Email to company — replies go to the customer directly
+    await send(COMPANY_EMAIL, `New ${type} booking from ${name}`, "New booking received", email || undefined);
 
+    // Email to customer — replies go to the company
     if (email) {
-      await send(email, "Your booking is confirmed — Rapid Transfer Service", "Thank you for your booking!");
+      await send(email, "Your booking is confirmed — Rapid Transfer Service", "Thank you for your booking!", COMPANY_EMAIL);
     }
 
     return res.status(200).json({ success: true });

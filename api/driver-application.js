@@ -56,10 +56,11 @@ export default async function handler(req, res) {
       to: COMPANY_EMAIL,
       subject: `New ${applicationType} application — ${fields.name || fields.companyName || "Unknown"}`,
       html,
+      reply_to: fields.email || undefined,
       attachments: attachments.map((a) => ({ filename: a.name, content: a.content })),
     };
 
-    await fetch("https://api.resend.com/emails", {
+    const mainRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
@@ -67,6 +68,12 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(emailPayload),
     });
+
+    if (!mainRes.ok) {
+      const errText = await mainRes.text();
+      console.error("Resend error (company email):", errText);
+      return res.status(400).json({ error: "Failed to send application email" });
+    }
 
     if (fields.email) {
       await fetch("https://api.resend.com/emails", {
@@ -79,6 +86,7 @@ export default async function handler(req, res) {
           from: FROM_EMAIL,
           to: fields.email,
           subject: "We received your application — Rapid Transfer Service",
+          reply_to: COMPANY_EMAIL,
           html: `
             <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;background:#fff;border:1px solid #eee;border-radius:14px;overflow:hidden">
               <div style="background:#0c1828;padding:24px;text-align:center">
