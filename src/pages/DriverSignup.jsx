@@ -85,8 +85,8 @@ export default function DriverSignup({ onBack }) {
         body: JSON.stringify({
           applicationType: "Partner Company",
           ...company,
-          registrationDoc: undefined, insuranceDoc: undefined, fleetDoc: undefined,
-          attachments: [reg, ins, fleet].filter(Boolean),
+          registrationDoc: undefined, fleetDoc: undefined,
+          attachments: [reg, fleet].filter(Boolean),
         }),
       });
       const data = await res.json();
@@ -202,11 +202,6 @@ export default function DriverSignup({ onBack }) {
                   <span className="field-label">Company registration document</span>
                   <input type="file" accept=".pdf,image/*" onChange={setCFile("registrationDoc")} />
                   {company.registrationDoc && <span className="file-name">✓ {company.registrationDoc.name}</span>}
-                </label>
-                <label className="field field-full file-field">
-                  <span className="field-label">Insurance document</span>
-                  <input type="file" accept=".pdf,image/*" onChange={setCFile("insuranceDoc")} />
-                  {company.insuranceDoc && <span className="file-name">✓ {company.insuranceDoc.name}</span>}
                 </label>
                 <label className="field field-full file-field">
                   <span className="field-label">Fleet details / list</span>
