@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const { applicationType, attachments = [], ...fields } = body;
 
     // ── EDIT THESE ─────────────────────────────────────────
-    const COMPANY_EMAIL = "rts.premium.motors@gmail.com";
+    const COMPANY_EMAIL = "akstone007@gmail.com";
     const FROM_EMAIL = "Rapid Transfer Service <bookings@rapidtransferservice.com>";
     // ───────────────────────────────────────────────────────
 

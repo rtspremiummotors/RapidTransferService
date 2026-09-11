@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     } = body;
 
     // ── EDIT THESE ─────────────────────────────────────────
-    const COMPANY_EMAIL = "rts.premium.motors@gmail.com"; // where YOU receive bookings
+    const COMPANY_EMAIL = "akstone007@gmail.com"; // where YOU receive bookings
     const FROM_EMAIL = "Rapid Transfer Service <bookings@rapidtransferservice.com>";
     // ───────────────────────────────────────────────────────
 

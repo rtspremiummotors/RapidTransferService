@@ -38,7 +38,7 @@ export default function HowItWorks() {
           sub="From booking to arrival in three simple steps."
         />
 
-        {/* Steps */}
+        {/* Steps */} 
         <div className="hiw-steps">
           {STEPS.map((s, i) => {
             const Icon = s.icon;
