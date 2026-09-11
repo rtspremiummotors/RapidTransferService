@@ -22,7 +22,7 @@ export default function DriverSignup({ onBack }) {
     companyName: "", contactName: "", email: "", phone: "",
     vatNumber: "", fleetSize: "", serviceType: DRIVER_TYPES[0],
     city: "", notes: "",
-    registrationDoc: null, insuranceDoc: null, fleetDoc: null,
+    registrationDoc: null, fleetDoc: null,
   });
 
   const setD = (f) => (e) => setDriver((p) => ({ ...p, [f]: e.target.value }));
@@ -78,7 +78,6 @@ export default function DriverSignup({ onBack }) {
     setError(null);
     try {
       const reg = await fileToBase64(company.registrationDoc);
-      const ins = await fileToBase64(company.insuranceDoc);
       const fleet = await fileToBase64(company.fleetDoc);
       const res = await fetch("/api/driver-application", {
         method: "POST",
