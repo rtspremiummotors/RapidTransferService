@@ -50,11 +50,11 @@ export default function WhyChooseUs() {
                 <span className="wcu-num-label">Years of experience</span>
               </div>
               <div className="wcu-number">
-                <span className="wcu-num">500+</span>
+                <span className="wcu-num">5000+</span>
                 <span className="wcu-num-label">Customers served</span>
               </div>
               <div className="wcu-number">
-                <span className="wcu-num">5</span>
+                <span className="wcu-num">30+</span>
                 <span className="wcu-num-label">Countries covered</span>
               </div>
             </div>
