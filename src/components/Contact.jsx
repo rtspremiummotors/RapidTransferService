@@ -35,7 +35,7 @@ export default function Contact() {
   };
 
   return (
-    <section className="section" id="contact">
+    <section className="section section-gray" id="contact">
       <div className="container">
         <SectionHeading
           eyebrow="Get in touch"
