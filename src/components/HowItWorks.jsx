@@ -23,8 +23,8 @@ const STEPS = [
 
 const STATS = [
   { num: "24/7", label: "Always available" },
-  { num: "5+", label: "Countries served" },
-  { num: "500+", label: "Happy customers" },
+  { num: "30+", label: "Countries served" },
+  { num: "10000+", label: "Happy customers" },
   { num: "100%", label: "Fixed price guarantee" },
 ];
 

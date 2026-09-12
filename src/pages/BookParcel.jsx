@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { COMPANY, phoneLink, whatsappLink } from "../config.js";
+import { COMPANY, phoneLink } from "../config.js";
 import { WhatsAppIcon } from "../components/Hero.jsx";
 import AddressInput from "../components/AddressInput.jsx";
 import DatePicker from "../components/DatePicker.jsx";
@@ -23,12 +23,19 @@ export default function BookParcel({ onBack }) {
     name: "", phone: "", email: "", notes: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [confirming, setConfirming] = useState(false); // NEW: click-to-confirm step
+  const [emailError, setEmailError] = useState(null);
 
-  const set = (f) => (v) => setForm((p) => ({ ...p, [f]: typeof v === "object" && v.target ? v.target.type === "checkbox" ? v.target.checked : v.target.value : v }));
+  const set = (f) => (v) => setForm((p) => ({
+    ...p,
+    [f]: typeof v === "object" && v.target
+      ? v.target.type === "checkbox" ? v.target.checked : v.target.value
+      : v
+  }));
 
   const selectedSize = SIZES.find(s => s.id === form.size);
   const canNext0 = form.size && form.contents.trim();
-  const canNext1 = form.pickup.trim() && form.destination.trim() && form.date && form.time && form.name.trim() && form.phone.trim();
+  const canNext1 = form.pickup.trim() && form.destination.trim() && form.date && form.time && form.name.trim() && form.phone.trim() && form.email.trim();
 
   const whatsappText =
 `Hi! I'd like to send a parcel with Rapid Transfer Service.
@@ -37,7 +44,7 @@ export default function BookParcel({ onBack }) {
 • Size: ${selectedSize?.label}
 • Weight: ${form.weight || "not specified"}
 • Contents: ${form.contents}
-${form.fragile ? "• ⚠️ Fragile — handle with care" : ""}
+${form.fragile ? "• Fragile — handle with care" : ""}
 ${form.value ? `• Declared value: €${form.value}` : ""}
 
 📍 Pickup & delivery
@@ -50,8 +57,34 @@ ${form.recipientPhone ? `• Recipient phone: ${form.recipientPhone}` : ""}
 👤 Sender details
 • Name: ${form.name}
 • Phone: ${form.phone}
-${form.email ? `• Email: ${form.email}` : ""}
+• Email: ${form.email}
 ${form.notes ? `• Notes: ${form.notes}` : ""}`;
+
+  // Fires the confirmation email BEFORE opening WhatsApp, so the request
+  // isn't cut short by the browser navigating to a new tab.
+  const confirmBooking = async () => {
+    setConfirming(true);
+    setEmailError(null);
+    try {
+      await fetch("/api/send-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "Parcel",
+          name: form.name, email: form.email, phone: form.phone,
+          pickup: form.pickup, destination: form.destination,
+          date: form.date, time: form.time,
+          vehicle: selectedSize?.label,
+          paymentStatus: "Pay on arrival",
+          notes: `${form.notes || ""}${form.recipientName ? ` | Recipient: ${form.recipientName}` : ""}${form.recipientPhone ? ` (${form.recipientPhone})` : ""}${form.fragile ? " | FRAGILE" : ""}${form.value ? ` | Declared value: €${form.value}` : ""}`.trim(),
+        }),
+      });
+    } catch (e) {
+      setEmailError("Could not send confirmation email, but you can still confirm via WhatsApp or phone.");
+    } finally {
+      setSubmitted(true);
+    }
+  };
 
   return (
     <main className="book-page">
@@ -81,8 +114,9 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
           {submitted ? (
             <div className="book-confirmed">
               <div className="confirmed-icon">✓</div>
-              <h2>Parcel request sent!</h2>
+              <h2>Parcel request confirmed!</h2>
               <p>We will contact you shortly to confirm pickup and price.</p>
+              {emailError && <p className="fare-error">{emailError}</p>}
               <div className="summary">
                 {[
                   { label: "Size", value: selectedSize?.label },
@@ -99,10 +133,15 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                 ))}
               </div>
               <div className="confirm-btns">
-                <a href={`https://wa.me/${COMPANY.whatsappNumber}?text=${encodeURIComponent(whatsappText)}`} className="btn btn-whatsapp" target="_blank" rel="noopener noreferrer">
+                <a
+                  href={`https://wa.me/${COMPANY.whatsappNumber}?text=${encodeURIComponent(whatsappText)}`}
+                  className="btn btn-whatsapp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <WhatsAppIcon /> Open WhatsApp
                 </a>
-                <a href={`tel:${COMPANY.phoneTel}`} className="btn btn-gold">📞 {COMPANY.phoneDisplay}</a>
+                <a href={phoneLink()} className="btn btn-gold">📞 {COMPANY.phoneDisplay}</a>
               </div>
             </div>
           ) : (
@@ -140,7 +179,7 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                     </label>
                     <label className="field field-full toggle-field">
                       <input type="checkbox" checked={form.fragile} onChange={set("fragile")} />
-                      <span>⚠️ Fragile — handle with care</span>
+                      <span>Fragile — handle with care</span>
                     </label>
                   </div>
                   <button className="btn btn-gold btn-next" disabled={!canNext0} onClick={() => setStep(1)}>Continue →</button>
@@ -173,7 +212,7 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                       <input type="tel" placeholder="+32 ..." value={form.phone} onChange={set("phone")} />
                     </label>
                     <label className="field field-full">
-                      <span className="field-label">Email <span className="field-optional">(optional)</span></span>
+                      <span className="field-label">Email address</span>
                       <input type="email" placeholder="your@email.com" value={form.email} onChange={set("email")} />
                     </label>
                     <label className="field field-full">
@@ -185,22 +224,23 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                 </div>
               )}
 
-              {/* STEP 2 — Review */}
+              {/* STEP 2 — Confirm (click-to-confirm, mirrors Book Taxi flow) */}
               {step === 2 && (
                 <div className="book-step">
                   <h2>Review your request</h2>
                   <div className="summary">
                     {[
-                      { label: "Size", value: `${selectedSize?.icon} ${selectedSize?.label}` },
+                      { label: "Size", value: selectedSize?.label },
                       { label: "Weight", value: form.weight || "Not specified" },
                       { label: "Contents", value: form.contents },
-                      ...(form.fragile ? [{ label: "Handling", value: "⚠️ Fragile" }] : []),
+                      ...(form.fragile ? [{ label: "Handling", value: "Fragile" }] : []),
                       { label: "From", value: form.pickup },
                       { label: "To", value: form.destination },
                       { label: "Pickup", value: `${form.date} at ${form.time}` },
                       ...(form.recipientName ? [{ label: "Recipient", value: form.recipientName }] : []),
                       { label: "Sender", value: form.name },
                       { label: "Phone", value: form.phone },
+                      { label: "Email", value: form.email },
                       ...(form.notes ? [{ label: "Notes", value: form.notes }] : []),
                     ].map(r => (
                       <div key={r.label} className="summary-row">
@@ -210,33 +250,16 @@ ${form.notes ? `• Notes: ${form.notes}` : ""}`;
                     ))}
                   </div>
                   <p className="book-note">We will confirm availability and send you a price before collecting.</p>
-                  <div className="confirm-btns">
-                    <a
-                      href={`https://wa.me/${COMPANY.whatsappNumber}?text=${encodeURIComponent(whatsappText)}`}
-                      className="btn btn-whatsapp btn-lg"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => {
-                        setSubmitted(true);
-                        fetch("/api/send-booking", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            type: "Parcel",
-                            name: form.name, email: form.email, phone: form.phone,
-                            pickup: form.pickup, destination: form.destination,
-                            date: form.date, time: form.time,
-                            vehicle: selectedSize?.label,
-                            paymentStatus: "Pay on arrival",
-                            notes: form.notes,
-                          }),
-                        }).catch(() => {});
-                      }}
-                    >
-                      <WhatsAppIcon /> Confirm via WhatsApp
-                    </a>
-                    <a href={phoneLink()} className="btn btn-outline btn-lg">📞 Call to confirm</a>
-                  </div>
+
+                  {!confirming ? (
+                    <button type="button" className="btn btn-gold btn-lg btn-block" onClick={confirmBooking}>
+                      Confirm booking
+                    </button>
+                  ) : (
+                    <div className="confirm-btns">
+                      <p className="form-note" style={{ width: "100%" }}>Sending confirmation...</p>
+                    </div>
+                  )}
                 </div>
               )}
             </>
