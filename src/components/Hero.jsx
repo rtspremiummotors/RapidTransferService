@@ -14,7 +14,7 @@ export default function Hero({ onBook }) {
         <div className="hero-trust-bar">
           <span><span className="green-dot" />Online now · Average response 5 min</span>
           <span className="htb-sep" />
-          <span>⭐⭐⭐⭐⭐ Trusted by 500+ customers</span>
+          <span>⭐⭐⭐⭐⭐ Trusted by 10000+ customers</span>
           <span className="htb-sep" />
           <span>✓ Licensed &amp; insured in Belgium</span>
         </div>

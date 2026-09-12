@@ -17,11 +17,11 @@ export const COMPANY = {
   whatsappMessage: "Hello, I would like to book a ride with Rapid Transfer Service.",
 
   // ── CHANGE EMAIL HERE ─────────────────────────────────────
-  email: "info@rapidtransferservice.be",
+  email: "info@rapidtransferservice.com",
 
   // ── CHANGE SERVICE AREA HERE ──────────────────────────────
-  serviceArea: "Belgium & neighbouring countries",
-  serviceAreaShort: "Brussels, Belgium",
+  serviceArea: "Belgium, Austria & neighbouring countries",
+  serviceAreaShort: "Brussels, Belgium & Austria",
 
   // ── CHANGE ADDRESS HERE (shown in footer/contact) ─────────
   address: "Brussels, Belgium",
