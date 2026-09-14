@@ -10,6 +10,11 @@
   },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/favicon.png", "dest": "/favicon.png" },
+    { "src": "/logo-mark.png", "dest": "/logo-mark.png" },
+    { "src": "/robots.txt", "dest": "/robots.txt" },
+    { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
